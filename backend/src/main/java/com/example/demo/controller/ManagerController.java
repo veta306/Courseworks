@@ -168,7 +168,7 @@ public class ManagerController {
                                               authorizedClient)
             throws GeneralSecurityException, IOException {
         List<Course> allCourses = googleClassroomService.getCourses(authorizedClient.getAccessToken().getTokenValue());
-        Pattern pattern = Pattern.compile("курсов[а-я]*|квал[а-я]*", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+        Pattern pattern = Pattern.compile("курсов|квал|дисертац", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
         return allCourses.stream()
                 .filter(course -> pattern.matcher(course.getName()).find())
                 .collect(Collectors.toList());
