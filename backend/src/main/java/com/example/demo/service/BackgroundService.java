@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.text.MessageFormat;
@@ -71,9 +72,9 @@ public class BackgroundService {
             String firstPage = PDFTools.extractFirstPageText(googleDriveService.getFileContent(accessToken, work.getClassroomLink()));
 
             try {
-                Files.writeString(Path.of(work.getExternalIdCode() + "_" + work.getRawStudentName() + ".txt"), firstPage);
-                System.out.println("File ``" + work.getExternalIdCode() + "_" + work.getRawStudentName() + ".txt'' probably created successfully");
-            } catch (IOException e) {
+                Files.writeString(Path.of(work.getExternalIdCode() + "_" + work.getRawStudentName().replace("\\s", "\\x20") + ".txt"), firstPage);
+                System.out.println("File ``" + work.getExternalIdCode() + "_" + work.getRawStudentName().replace("\\s", "\\x20") + ".txt'' probably created successfully");
+            } catch (IOException | IllegalArgumentException | NullPointerException e) {
                 System.out.println("Failed to create local file ``" + work.getExternalIdCode() + "_" + work.getRawStudentName() + ".txt''");
                 System.out.println(e.getMessage());
             }
