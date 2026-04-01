@@ -21,6 +21,7 @@ import java.security.GeneralSecurityException;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -48,6 +49,7 @@ public class ManagerService {
         List<Work> workList = new ArrayList<>();
         List<GoogleSheetsService.AssignmentRecord> assignments = googleSheetsService.extractAssignments(accessToken, discipline.getTopicDistributionLink());
         Set<User> supervisors = new HashSet<>(discipline.getSupervisors());
+        Pattern PHOTO_DATETIME = Pattern.compile(".*\\(.{0,7}\\d{1,2}.{0,7}\\d{4}.{0,7}\\d{1,2}([:\\s]{0,3})\\d{2}(\\s*(AM|PM))?\\)\\.pdf", Pattern.CASE_INSENSITIVE);
 
         if (submissions != null && !(submissions.isEmpty())) {
             for (StudentSubmission submission : submissions) {
@@ -64,13 +66,21 @@ public class ManagerService {
                     if (attachments != null) {
                         long maxSize = Integer.MIN_VALUE / 2;
                         Attachment attachmentChosen = null;
+                        // System.out.println(studentEmail + " //// " + student.get().getName() + " has " + attachments.size() + " attachments");
                         for (Attachment attachment : attachments) {
                             if (attachment.getDriveFile() != null && attachment.getDriveFile().getTitle() != null && attachment.getDriveFile().getTitle().endsWith(".pdf")) {
                                 try {
                                     File fileMetaData = googleDriveService.getFileMetadata(accessToken, attachment.getDriveFile().getId());
+                                    String title = attachment.getDriveFile().getTitle();
+                                    // System.out.println(title + " /// " + attachment.getDriveFile().getId());
                                     long size = fileMetaData.getSize();
-                                    if (attachment.getDriveFile().getTitle().contains("повна"))
+                                    if (title.contains("повна"))
                                         size *= 2;
+                                    if (PHOTO_DATETIME.matcher(title).find()) {
+                                        System.out.println("``" + title + "'' is probably a photo");
+                                        size /= 5;
+                                    }
+                                    // System.out.println("size (changed) is " + size);
                                     if (size > maxSize) {
                                         if (maxSize > 0) {
                                             System.out.println("For student " + student.get().getName() + ", file was changed from " +
@@ -81,6 +91,7 @@ public class ManagerService {
                                         attachmentChosen = attachment;
                                     }
                                 } catch (IOException e) {
+                                    System.out.println(e.getMessage());
                                     continue;
                                 }
                             }
