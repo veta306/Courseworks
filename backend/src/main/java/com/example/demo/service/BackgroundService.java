@@ -133,7 +133,7 @@ public class BackgroundService {
                 work.setThemeDifference(distInfo.diffAsHtml);
             }
             if (work.getStudentGroup() != null){
-                work.setGroupDifference(StrDist.getBestMatchWord("групи " + work.getStudentGroup(), firstPage, true).diffAsHtml);
+                work.setGroupDifference(StrDist.getBestMatchWord("група " + work.getStudentGroup(), firstPage, true).diffAsHtml);
             }
 
             work.setMinistryDifference(StrDist.getBestMatchRow(department.getMinistry(), firstPage, true).diffAsHtml);
