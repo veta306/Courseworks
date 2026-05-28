@@ -79,6 +79,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOrigin("https://cw.cdu.edu.ua");
         config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");
