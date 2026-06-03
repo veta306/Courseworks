@@ -80,7 +80,7 @@ public class ManagerService {
                                         System.out.println("``" + title + "'' is probably a photo");
                                         size /= 5;
                                     }
-                                    // System.out.println("size (changed) is " + size);
+                                    // System.out.println("size (changed) is " + size);public
                                     if (size > maxSize) {
                                         if (maxSize > 0) {
                                             System.out.println("For student " + student.get().getName() + ", file was changed from " +

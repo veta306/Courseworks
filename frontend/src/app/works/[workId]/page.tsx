@@ -14,6 +14,7 @@ import {
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import RefreshPdfButton from "@/components/RefreshPdfButton";
 
 export const metadata: Metadata = {
   title: "Робота",
@@ -68,13 +69,14 @@ export default async function WorkPage({
               </TableRow>
               <TableRow>
                 <TableCell rowSpan={2}>Тема</TableCell>
-                <TableCell>{work.theme}</TableCell>
+                <TableCell id="work-theme-from-table">{work.theme}</TableCell>
                 <TableCell align="right">
                   <CopyButton textToCopy={work.theme ?? ""} />
                 </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell
+                  id="work-theme-from-file"
                   colSpan={2}
                   dangerouslySetInnerHTML={{ __html: work.themeDifference }}
                 />
@@ -179,22 +181,37 @@ export default async function WorkPage({
         </TableContainer>
       </Grid>
       <Grid size={3}>
-        <Paper sx={{ p: 2, height: "100%" }}>
-          <Typography variant="h6">Попередній перегляд (оригінал)</Typography>
-          <iframe
-            src={work.classroomLink.replace(/\/view.*$/, "/preview")}
-            className="w-full h-[96%]"
-          ></iframe>
-        </Paper>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <Paper sx={{ p: 2, height: "100%" }}>
+                <Typography variant="h6">Попередній перегляд (оригінал)</Typography>
+                <iframe
+                  src={work.classroomLink.replace(/\/view.*$/, "/preview")}
+                  className="w-full h-[96%]"
+                ></iframe>
+              </Paper>
+            </TableRow>
+            <TableRow>
+              <RefreshPdfButton workId={workId} />
+            </TableRow>
+          </TableBody>
+        </Table>
       </Grid>
       <Grid size={3}>
-        <Paper sx={{ p: 2, height: "100%" }}>
-          <Typography variant="h6">Попередній перегляд (без додатків)</Typography>
-          <iframe
-            src={(work.shortTextLink ?? "").replace(/\/view.*$/, "/preview")}
-            className="w-full h-[96%]"
-          ></iframe>
-        </Paper>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <Paper sx={{ p: 2, height: "100%" }}>
+                <Typography variant="h6">Попередній перегляд (без додатків)</Typography>
+                <iframe
+                  src={(work.shortTextLink ?? "").replace(/\/view.*$/, "/preview")}
+                  className="w-full h-[96%]"
+                ></iframe>
+              </Paper>
+            </TableRow>
+          </TableBody>
+        </Table>
       </Grid>
     </Grid>
   );

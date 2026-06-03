@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.FileInfoDTO;
 import com.example.demo.entity.Department;
 import com.example.demo.entity.Work;
 import com.example.demo.repository.DepartmentRepository;
@@ -10,12 +11,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Objects;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/works")
@@ -36,5 +34,36 @@ public class WorkController {
             return work;
         }
         return null;
+    }
+
+    @PostMapping("/{id}/refresh-pdf")
+    public List<FileInfoDTO> refreshPdfs(
+            @PathVariable Long id
+    ) {
+        System.out.println(id);
+        System.out.println("refreshPdfs");
+        Work work = workRepository.findById(id).orElseThrow();
+        String submissionLink = work.getGoogleSubmissionLink();
+        System.out.println(submissionLink);
+
+        return List.of(
+                new FileInfoDTO("Додаткові завдання «Низькорівневі».pdf", "https://drive.google.com/file/d/1a9UTIWhAg_SOcXAhGvRZEz31y36tR-Fm/view"),
+                new FileInfoDTO("Лабораторна робота №4_ПтаАМ_2026.pdf", "https://drive.google.com/file/d/1yGvYgXhHV7fcneDh1coSyUAdWdZBP-_F/view")
+        );
+
+
+    }
+
+    @PostMapping("/{id}/select-pdf")
+    boolean selectPdf(
+            @PathVariable Long id,
+            @RequestBody FileInfoDTO file
+    ) {
+        System.out.println(id);
+        System.out.println("selectPdf");
+        Work work = workRepository.findById(id).orElseThrow();
+        work.setFullTextLink(file.getFileUrl());
+        workRepository.save(work);
+        return true;
     }
 }
