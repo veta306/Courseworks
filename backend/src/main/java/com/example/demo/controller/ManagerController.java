@@ -26,6 +26,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -52,6 +54,7 @@ public class ManagerController {
     private final WorkRepository workRepository;
     private final NotificationService notificationService;
     private final DepartmentRepository departmentRepository;
+    private final ApplicationContext applicationContext;
 
     @GetMapping("/")
     public Department getDepartment(@AuthenticationPrincipal OAuth2User principal) {
@@ -74,7 +77,7 @@ public class ManagerController {
         disciplineRepository.save(discipline);
         department.getDisciplines().add(discipline);
         departmentService.saveDepartment(department);
-        backgroundService.verifyWorks(authorizedClient.getAccessToken().getTokenValue(), discipline, department);
+        backgroundService.verifyWorks(authorizedClient.getAccessToken().getTokenValue(), discipline, department, true);
         return discipline;
     }
 
@@ -82,16 +85,23 @@ public class ManagerController {
     @PutMapping("/disciplines/{id}/update")
     public Discipline updateWorks(
             @PathVariable Long id,
-            @RegisteredOAuth2AuthorizedClient("google") OAuth2AuthorizedClient authorizedClient
+            @RegisteredOAuth2AuthorizedClient("google") OAuth2AuthorizedClient authorizedClient,
+            @RequestBody(required = false) UpdateWorkRequest request
     ) throws GeneralSecurityException, IOException {
+
+        Long workId = request != null ? request.getWorkId() : null;
+
         Discipline discipline = disciplineRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Discipline not found"));
         Department department = managerService.getDepartment(authorizedClient.getPrincipalName());
         String accessToken = authorizedClient.getAccessToken().getTokenValue();
 
-        disciplineRepository.save(disciplineService.updateDisciplineUsers(accessToken, discipline));
-
-        Set<Work> newWorks = new HashSet<>(managerService.createWorks(authorizedClient.getAccessToken().getTokenValue(), discipline));
+        // If workId is null, it means that this update is triggered by discipline update, 
+        // so we need to update discipline users
+        if (workId == null) {
+            disciplineRepository.save(disciplineService.updateDisciplineUsers(accessToken, discipline));
+        }
+        Set<Work> newWorks = new HashSet<>(managerService.createWorks(accessToken, discipline));
 
         Map<String, Work> existingWorksByStudent = discipline.getWorks().stream()
                 .filter(w -> w.getStudent() != null)
@@ -102,6 +112,11 @@ public class ManagerController {
 
         for (Work newWork : newWorks) {
             Work existing = existingWorksByStudent.get(newWork.getStudent().getEmail());
+            // If workId is not null, it means that this update is triggered by work update,
+            // so we need to check that we are updating the only one work
+            if (workId != null && !Objects.equals(existing.getId(), workId)) {
+                continue;
+            }
             if (existing == null) {
                 workRepository.save(newWork);
                 discipline.getWorks().add(newWork);
@@ -135,7 +150,13 @@ public class ManagerController {
             }
         }
         disciplineRepository.save(discipline);
-        backgroundService.verifyWorks(authorizedClient.getAccessToken().getTokenValue(), discipline, department);
+        if (workId != null) {
+            backgroundService.verifyWorksSync(accessToken, discipline, department, false);
+        }
+        else
+        {
+            backgroundService.verifyWorks(accessToken, discipline, department, workId == null);
+        }
         return discipline;
     }
 
@@ -251,5 +272,21 @@ public class ManagerController {
         return managerService.processReports(authorizedClient.getAccessToken().getTokenValue(), department, discipline, files);
         // TDDO: here is one of places where too old authorization fails, and currently IT'S EVEN NOT REPORTED TO USER IN SUITABLE MANNER!!!
         // com.google.api.client.googleapis.json.GoogleJsonResponseException: 401 Unauthorized
+    }
+
+    @PutMapping("/works/{id}/update")
+    public RedirectView updateWork(
+            @PathVariable Long id,
+            @RequestBody UpdateWorkRequest request,
+            @RegisteredOAuth2AuthorizedClient("google") OAuth2AuthorizedClient authorizedClient
+    ) throws GeneralSecurityException, IOException {
+        Discipline discipline = disciplineRepository.findByWorkId(id);
+
+        // Call the controller's PUT handler through the Spring proxy so
+        // transactional/proxy behavior is preserved and all parameters are passed.
+        ManagerController proxy = applicationContext.getBean(ManagerController.class);
+        proxy.updateWorks(discipline.getId(), authorizedClient, request);
+
+        return new RedirectView("/api/manager/disciplines/" + discipline.getId() + "/update");
     }
 }

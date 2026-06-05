@@ -46,7 +46,12 @@ public class BackgroundService {
     }
 
     @Async("asyncExecutor")
-    public void verifyWorks(String accessToken, Discipline discipline, Department department) throws GeneralSecurityException, IOException {
+    public void verifyWorks(String accessToken, Discipline discipline, Department department, Boolean isDisciplineUpdate) throws GeneralSecurityException, IOException {
+        verifyWorksSync(accessToken, discipline, department, isDisciplineUpdate);       
+    }
+
+    public void verifyWorksSync(String accessToken, Discipline discipline, Department department, Boolean isDisciplineUpdate) throws GeneralSecurityException, IOException {
+
         Set<Work> works = discipline.getWorks();
 
         String programFolderId = googleDriveService.createFolderIfNotExists(accessToken, "CourseworkManagement", null);
@@ -226,10 +231,12 @@ public class BackgroundService {
             workRepository.save(work);
             notificationService.createCheckResultNotification(work, discipline);
         }
-        discipline.setUpdating(false);
-        discipline.setUpdateDate(LocalDateTime.now());
-        disciplineRepository.save(discipline);
-        notifier.notifyListeners(discipline.getId());
+        if (isDisciplineUpdate) {
+            discipline.setUpdating(false);
+            discipline.setUpdateDate(LocalDateTime.now());
+            disciplineRepository.save(discipline);        
+            notifier.notifyListeners(discipline.getId());
+        }
     }
 
 

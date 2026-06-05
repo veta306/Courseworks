@@ -1,5 +1,7 @@
 import CopyButton from "@/components/CopyButton";
-import { Work } from "@/types/dto";
+import WorkWarningAlert from "@/components/WorkWarningAlert";
+import { WorkDTO } from "@/types/dto";
+import { verifySession } from "@/utils/dal";
 import {
   Grid,
   Link,
@@ -26,6 +28,7 @@ export default async function WorkPage({
 }) {
   const { workId } = await params;
   const cookieStore = await cookies();
+  const user = await verifySession();
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/works/${workId}`,
     {
@@ -34,11 +37,29 @@ export default async function WorkPage({
         "Content-Type": "application/json",
         Cookie: `JSESSIONID=${cookieStore.get("JSESSIONID")?.value}`,
       },
-    }
+    },
   );
 
-  const work: Work = response.ok ? await response.json() : null;
+  const { work, latestActionDate }: WorkDTO = response.ok
+    ? await response.json()
+    : null;
   if (!work) notFound();
+  if (
+    user &&
+    user.authorities.filter((a) => a.authority === "ROLE_MANAGER").length > 0 &&
+    latestActionDate
+  ) {
+    const oldDate = new Date(work.turnInDate).toLocaleString();
+    const newDate = new Date(latestActionDate).toLocaleString();
+    if (oldDate !== newDate)
+      return (
+        <WorkWarningAlert
+          workId={work.id}
+          oldDate={oldDate}
+          newDate={newDate}
+        />
+      );
+  }
 
   return (
     <Grid container spacing={2} padding={3}>

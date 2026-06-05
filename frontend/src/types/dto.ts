@@ -111,6 +111,13 @@ export interface Work {
   externalIdCode: string;
   nameAtTitlePageDifference: string;
   fileNameToCopy: string;
+  turnInDate: string;
+  googleSubmissionId: string;
+}
+
+export type WorkDTO = {
+  work: Work;
+  latestActionDate: string | null;
 }
 
 export type Notification = {

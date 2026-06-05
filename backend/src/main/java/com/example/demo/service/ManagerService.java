@@ -104,6 +104,7 @@ public class ManagerService {
 
                             work.setClassroomLink(attachmentChosen.getDriveFile().getAlternateLink());
                             work.setGoogleSubmissionLink(submission.getAlternateLink());
+                            work.setGoogleSubmissionId(submission.getId());
                             work.setTopicDistributionLink(discipline.getTopicDistributionLink());
                             work.setType(discipline.getType());
                             work.setTurnInDate(OffsetDateTime.parse(submission.getSubmissionHistory().reversed().stream()
