@@ -99,4 +99,7 @@ public class Work {
 
     @Column(columnDefinition="TEXT")
     private String fileNameToCopy;
+
+    @Column(columnDefinition="TEXT")
+    private String googleSubmissionId;
 }

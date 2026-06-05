@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.HttpRequest;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.classroom.Classroom;
@@ -19,12 +20,22 @@ public class GoogleClassroomService {
 
     private static final String APPLICATION_NAME = "coursework-management";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
+    private static final int CONNECT_TIMEOUT_MS = 30_000;
+    private static final int READ_TIMEOUT_MS = 120_000;
+
+    private void applyRequestTimeouts(HttpRequest request) {
+        request.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        request.setReadTimeout(READ_TIMEOUT_MS);
+    }
 
     private Classroom getClassroomService(String accessToken) throws GeneralSecurityException, IOException {
         return new Classroom.Builder(
                 GoogleNetHttpTransport.newTrustedTransport(),
                 JSON_FACTORY,
-                request -> request.getHeaders().setAuthorization("Bearer " + accessToken))
+                request -> {
+                    request.getHeaders().setAuthorization("Bearer " + accessToken);
+                    applyRequestTimeouts(request);
+                })
                 .setApplicationName(APPLICATION_NAME)
                 .build();
     }
@@ -133,5 +144,11 @@ public class GoogleClassroomService {
 //        return classroomService.courses().courseWork().studentSubmissions().list(courseId, cwId).setStates(List.of("TURNED_IN", "RETURNED")).execute().getStudentSubmissions();
         return classroomService.courses().courseWork().studentSubmissions().list(courseId, cwId)
                 .setStates(List.of("TURNED_IN", "RETURNED")).execute().getStudentSubmissions();
+    }
+
+    public StudentSubmission getSubmission(String accessToken, String courseId, String cwId, String submissionId)
+            throws GeneralSecurityException, IOException {
+        Classroom classroomService = getClassroomService(accessToken);
+        return classroomService.courses().courseWork().studentSubmissions().get(courseId, cwId, submissionId).execute();
     }
 }

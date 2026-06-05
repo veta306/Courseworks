@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.ByteArrayContent;
+import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.InputStreamContent;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
@@ -23,13 +24,22 @@ public class GoogleDriveService {
 
     private static final String APPLICATION_NAME = "coursework-management";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
+    private static final int CONNECT_TIMEOUT_MS = 30_000;
+    private static final int READ_TIMEOUT_MS = 120_000;
+
+    private void applyRequestTimeouts(HttpRequest request) {
+        request.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        request.setReadTimeout(READ_TIMEOUT_MS);
+    }
 
     public Drive getGoogleDriveService(String accessToken) throws GeneralSecurityException, IOException {
         return new Drive.Builder(
                 GoogleNetHttpTransport.newTrustedTransport(),
                 JSON_FACTORY,
-                request -> request.getHeaders().setAuthorization("Bearer " + accessToken)
-        )
+                request -> {
+                    request.getHeaders().setAuthorization("Bearer " + accessToken);
+                    applyRequestTimeouts(request);
+                })
                 .setApplicationName(APPLICATION_NAME)
                 .build();
     }
