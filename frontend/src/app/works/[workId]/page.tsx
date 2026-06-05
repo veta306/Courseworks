@@ -67,11 +67,11 @@ export default async function WorkPage({
         <TableContainer component={Paper}>
           <Table>
             <TableBody>
-              {/*<TableRow>
+              <TableRow>
                 <TableCell colSpan={5} sx = {{color : '#F00F0F'}}>
                   <Typography variant="h2"><b>ПЕРЕПРОВІР, ЧИ НЕМА НОВІШОГО ФАЙЛУ!!!</b></Typography>
                 </TableCell>
-              </TableRow>*/}
+              </TableRow>
               <TableRow>
                 {work.fullTextLink ? (
                     <Link id="full-text-link" href={work.fullTextLink} target="_blank" rel="noopener noreferrer">
@@ -256,6 +256,7 @@ export default async function WorkPage({
       </Grid>
       <Grid size={3}>
         <Paper sx={{ p: 2, height: "100%" }}>
+          <Typography variant="h4" sx = {{color : '#F00F0F'}}><b>ПЕРЕПРОВІР, ЧИ НЕМА НОВІШОГО ФАЙЛУ!!!</b></Typography>
           <Typography variant="h6">Попередній перегляд (оригінал)</Typography>
           <iframe
             src={work.classroomLink.replace(/\/view.*$/, "/preview")}
