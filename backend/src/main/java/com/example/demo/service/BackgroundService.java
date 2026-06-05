@@ -66,10 +66,18 @@ public class BackgroundService {
             try {
                 originalFileContent = googleDriveService.getFileContent(accessToken, work.getClassroomLink()).readAllBytes();
             } catch (IOException e) {
+                System.err.printf("Couldn't get file content: %s\n", e.getMessage());
                 workRepository.save(work);
                 continue;
             }
-            String firstPage = PDFTools.extractFirstPageText(googleDriveService.getFileContent(accessToken, work.getClassroomLink()));
+            String firstPage = null;
+            try {
+                firstPage = PDFTools.extractFirstPageText(googleDriveService.getFileContent(accessToken, work.getClassroomLink()));
+            } catch (IOException e) {
+                System.err.printf("Couldn't get first page content: %s\n", e.getMessage());
+                workRepository.save(work);
+                continue;
+            }
 
             try {
                 Files.writeString(Path.of(work.getExternalIdCode() + "_" + work.getRawStudentName().replace("\\s", "\\x20") + ".txt"), firstPage);
@@ -123,9 +131,9 @@ public class BackgroundService {
             }
             if (work.getTheme() != null) {
                 String theme = work.getTheme();
-                if (work.getType() == DisciplineType.COURSEWORK && (discipline.getName().contains("ООП") || discipline.getName().contains("БД")))
-                    theme = "на тему «" + theme + "»";
-                else // if (work.getType() == DisciplineType.QUALIFICATION_WORK)
+//                if (work.getType() == DisciplineType.COURSEWORK && (discipline.getName().contains("ООП") || discipline.getName().contains("БД")))
+//                    theme = "на тему «" + theme + "»";
+//                else // if (work.getType() == DisciplineType.QUALIFICATION_WORK)
                     theme = theme.toUpperCase(Locale.ROOT);
 //                else
                 StrDist.DistResInfo distInfo = StrDist.getBestMatchWordRow(theme, firstPage, true);
@@ -133,7 +141,7 @@ public class BackgroundService {
                 work.setThemeDifference(distInfo.diffAsHtml);
             }
             if (work.getStudentGroup() != null){
-                work.setGroupDifference(StrDist.getBestMatchWord("група " + work.getStudentGroup(), firstPage, true).diffAsHtml);
+                work.setGroupDifference(StrDist.getBestMatchWord("Група " + work.getStudentGroup(), firstPage, true).diffAsHtml);
             }
 
             work.setMinistryDifference(StrDist.getBestMatchRow(department.getMinistry(), firstPage, true).diffAsHtml);

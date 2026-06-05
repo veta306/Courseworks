@@ -249,5 +249,7 @@ public class ManagerController {
         Department department = managerService.getDepartment(authorizedClient.getPrincipalName());
         Discipline discipline = disciplineRepository.findById(id).orElseThrow(() -> new RuntimeException("Discipline not found"));
         return managerService.processReports(authorizedClient.getAccessToken().getTokenValue(), department, discipline, files);
+        // TDDO: here is one of places where too old authorization fails, and currently IT'S EVEN NOT REPORTED TO USER IN SUITABLE MANNER!!!
+        // com.google.api.client.googleapis.json.GoogleJsonResponseException: 401 Unauthorized
     }
 }
