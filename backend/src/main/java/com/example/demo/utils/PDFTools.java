@@ -11,6 +11,8 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -190,7 +192,7 @@ public class PDFTools {
         return null;
     }
 
-    public static byte[] trimAppendicesAndGetContent(byte[] pdfOriginalContent) throws IOException {
+    public static byte[] trimAppendicesAndGetContent(byte[] pdfOriginalContent, String name) throws IOException {
         if (pdfOriginalContent == null || pdfOriginalContent.length == 0) {
             System.err.println("trimAppendicesAndGetContent: PDF original content is null or empty.");
             return null; // Або повернути pdfOriginalContent, якщо це більш доречно
@@ -211,6 +213,7 @@ public class PDFTools {
                 pdfStripper.setEndPage(pageNum);
                 try {
                     pagesTexts.add(pdfStripper.getText(document));
+                    // Files.writeString(Path.of(name.replace("\\s", "\\x20") + "_page_" + (pageNum / 10) + "" + (pageNum % 10) + ".txt"), pagesTexts.getLast());
                 } catch (IOException e) {
                     System.err.println("trimAppendicesAndGetContent: IOException while reading page " + pageNum + ": " + e.getMessage() + ". Adding empty text.");
                     pagesTexts.add(""); // Додаємо порожній рядок, щоб зберегти індексацію

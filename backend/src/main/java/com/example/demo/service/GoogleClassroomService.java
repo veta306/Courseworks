@@ -150,5 +150,6 @@ public class GoogleClassroomService {
             throws GeneralSecurityException, IOException {
         Classroom classroomService = getClassroomService(accessToken);
         return classroomService.courses().courseWork().studentSubmissions().get(courseId, cwId, submissionId).execute();
+        // TODO: Fix fails provoked by backend logout when frontend is still logged in
     }
 }

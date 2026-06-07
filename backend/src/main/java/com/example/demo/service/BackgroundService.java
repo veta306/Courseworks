@@ -146,7 +146,13 @@ public class BackgroundService {
                 work.setThemeDifference(distInfo.diffAsHtml);
             }
             if (work.getStudentGroup() != null){
-                work.setGroupDifference(StrDist.getBestMatchWord("Група " + work.getStudentGroup(), firstPage, true).diffAsHtml);
+                if (work.getType() == DisciplineType.QUALIFICATION_WORK) {
+                    System.out.println("Група " + work.getStudentGroup());
+                    work.setGroupDifference(StrDist.getBestMatchWord("Група " + work.getStudentGroup(), firstPage, true).diffAsHtml);
+                } else {
+                    System.out.println("групи " + work.getStudentGroup());
+                    work.setGroupDifference(StrDist.getBestMatchWord("групи " + work.getStudentGroup(), firstPage, true).diffAsHtml);
+                }
             }
 
             work.setMinistryDifference(StrDist.getBestMatchRow(department.getMinistry(), firstPage, true).diffAsHtml);
@@ -171,7 +177,7 @@ public class BackgroundService {
                 );
                 work.setFullTextLink("https://drive.google.com/file/d/" + fullTextFileId + "/view");
 
-                byte[] trimmedPdfContent = PDFTools.trimAppendicesAndGetContent(originalFileContent);
+                byte[] trimmedPdfContent = PDFTools.trimAppendicesAndGetContent(originalFileContent, work.getStudent().getName());
                 if (trimmedPdfContent != null && trimmedPdfContent.length > 0) {
                     String trimmedTextFileId = googleDriveService.updateFileContent(
                             accessToken,
@@ -184,7 +190,7 @@ public class BackgroundService {
 
             } else if (work.getState() != WorkState.ONLY_DATA_UPDATE) {
                 boolean appendicesFound = false;
-                byte[] trimmedPdfContent = PDFTools.trimAppendicesAndGetContent(originalFileContent);
+                byte[] trimmedPdfContent = PDFTools.trimAppendicesAndGetContent(originalFileContent, work.getStudent().getName());
                 if (trimmedPdfContent != null && trimmedPdfContent.length > 0) {
                     appendicesFound = true;
                     String trimmedTextFileId = googleDriveService.uploadFile(

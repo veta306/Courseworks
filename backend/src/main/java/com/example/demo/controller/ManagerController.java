@@ -112,6 +112,7 @@ public class ManagerController {
 
         for (Work newWork : newWorks) {
             Work existing = existingWorksByStudent.get(newWork.getStudent().getEmail());
+            // TODO: "existing" MAY be null, probably when smth is wrong with authorizations
             // If workId is not null, it means that this update is triggered by work update,
             // so we need to check that we are updating the only one work
             if (workId != null && !Objects.equals(existing.getId(), workId)) {
@@ -272,6 +273,9 @@ public class ManagerController {
         return managerService.processReports(authorizedClient.getAccessToken().getTokenValue(), department, discipline, files);
         // TDDO: here is one of places where too old authorization fails, and currently IT'S EVEN NOT REPORTED TO USER IN SUITABLE MANNER!!!
         // com.google.api.client.googleapis.json.GoogleJsonResponseException: 401 Unauthorized
+        //
+         // TODO: non-localized in code issue: коли одночасно оновлюємо список робіт дисципліни й робимо звіти публічними —
+         // додані й розіслані поштою звіти можуть не_відображатися адекватно в GUI на сторінці /manager/disciplines/[disciplineId]
     }
 
     @PutMapping("/works/{id}/update")
